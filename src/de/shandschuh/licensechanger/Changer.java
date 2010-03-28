@@ -1,3 +1,21 @@
+/**
+ * License changer
+ * Copyright (C) 2010 Stefan Handschuh, Philipp Wähnert
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ **/
+
 package de.shandschuh.licensechanger;
 
 import java.io.BufferedReader;
@@ -8,7 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-//import java.util.TreeMap;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -41,17 +58,17 @@ public class Changer {
 	
 	private void changeLicense(File dir) {
 		File[] files = dir.listFiles();
-		Language last_language = null;
+		Language lastLanguage = null;
 		
 		for (int n = 0, i = files != null ? files.length : 0; n < i; n++) {
 			if (files[n].isDirectory()) {
 				changeLicense(files[n]);
 			} else {
-				if (last_language != null) {
+				if (lastLanguage != null) {
 					// The last language used for a file in a directory will
 					// be the most likely candidate for the next file
-					if (last_language.accept(files[n])) {
-						changeLicenseOfFile(files[n], last_language);
+					if (lastLanguage.accept(files[n])) {
+						changeLicenseOfFile(files[n], lastLanguage);
 						continue;
 					}
 				}
@@ -59,7 +76,7 @@ public class Changer {
 				for (Language language : languages) {
 					if (language.accept(files[n])) {
 						changeLicenseOfFile(files[n], language);
-						last_language = language;
+						lastLanguage = language;
 						continue;
 					}
 				}
@@ -163,7 +180,7 @@ public class Changer {
 		args[0] = args[0].replace("~", System.getProperty("user.home"));
 		args[2] = args[2].replace("~", System.getProperty("user.home"));
 		
-		ArrayList<Language> languages = new ArrayList<Language>();
+		ArrayList<Language> languages = new ArrayList<Language>(2);
 		languages.add(new Java());
 		languages.add(new Cpp());
 		
