@@ -8,14 +8,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.TreeMap;
+//import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.Collection;
+
 
 public class Changer {
 	private File dir;
 	
 	private File newLicenseFile;
 	
-	private Language language;
+	private Collection<Language> languages;
 	
 	private String[] newLicenseFileContent;
 	
@@ -23,10 +26,10 @@ public class Changer {
 	
 	private String defaultCopyright;
 	
-	public Changer(File dir, File newLicenseFile, Language language, String defaultProgramName, String defaultCopyright) {
+	public Changer(File dir, File newLicenseFile, Collection<Language> languages, String defaultProgramName, String defaultCopyright) {
 		this.dir = dir;
 		this.newLicenseFile = newLicenseFile;
-		this.language = language;
+		this.languages = languages;
 		this.defaultProgramName = defaultProgramName;
 		this.defaultCopyright = defaultCopyright;
 	}
@@ -38,17 +41,33 @@ public class Changer {
 	
 	private void changeLicense(File dir) {
 		File[] files = dir.listFiles();
+		Language last_language = null;
 		
 		for (int n = 0, i = files != null ? files.length : 0; n < i; n++) {
 			if (files[n].isDirectory()) {
 				changeLicense(files[n]);
-			} else if (language.accept(files[n])) {
-				changeLicenseOfFile(files[n]);
+			} else {
+				if (last_language != null) {
+					// The last language used for a file in a directory will
+					// be the most likely candidate for the next file
+					if (last_language.accept(files[n])) {
+						changeLicenseOfFile(files[n], last_language);
+						continue;
+					}
+				}
+				// Otherwise we have to go throught the complete list...
+				for (Language language : languages) {
+					if (language.accept(files[n])) {
+						changeLicenseOfFile(files[n], language);
+						last_language = language;
+						continue;
+					}
+				}
 			}
 		}
 	}
 	
-	private void changeLicenseOfFile(File file) {
+	private void changeLicenseOfFile(File file, Language language) {
 		int position = 0;
 		
 		int lineCount = 0;
@@ -137,20 +156,18 @@ public class Changer {
 	}
 	
 	public static void main(String[] args) {
-		if (args == null || args.length != 5) {
-			System.out.println("Usage:\n java -jar licensechanger.jar /path/to/source DIALECT /license/file.txt \"Program name\" \"Default copyright\"\n where DIALECT can be \"cpp\" or \"java\"");
+		if (args == null || args.length != 4) {
+			System.out.println("Usage:\n java -jar licensechanger.jar /path/to/source /license/file.txt \"Program name\" \"Default copyright\"\n where DIALECT can be \"cpp\" or \"java\"");
 			return;
 		}
 		args[0] = args[0].replace("~", System.getProperty("user.home"));
 		args[2] = args[2].replace("~", System.getProperty("user.home"));
 		
-		TreeMap<String, Language> languages = new TreeMap<String, Language>();
-		Language language = new Java();
-		languages.put(language.identifier(), language);
-		language = new Cpp();
-		languages.put(language.identifier(), language);
+		ArrayList<Language> languages = new ArrayList<Language>();
+		languages.add(new Java());
+		languages.add(new Cpp());
 		
-		Changer changer = new Changer(new File(args[0]), new File(args[2]), languages.get(args[1]), args[3], args[4]);
+		Changer changer = new Changer(new File(args[0]), new File(args[1]), languages, args[2], args[3]);
 		changer.changeLicense();
 	}
 }
