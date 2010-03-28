@@ -1,6 +1,8 @@
 package de.shandschuh.licensechanger;
 
-public class JavaHeaderCommentDialect implements HeaderCommentDialect {
+import java.io.File;
+
+public class Java implements Language {
 
 	public String getCommentClosing() {
 		return " **/";
@@ -14,8 +16,12 @@ public class JavaHeaderCommentDialect implements HeaderCommentDialect {
 		return " * ";
 	}
 
-	public String getIgnoreCommentInitiator() {
-		return "/*";
+	public boolean accept(File pathname) {
+		return pathname.toString().endsWith(".java");
 	}
 
+	public String identifier() {
+		return "java";
+	}
+	
 }

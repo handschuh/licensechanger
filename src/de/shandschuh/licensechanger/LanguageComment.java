@@ -1,11 +1,9 @@
 package de.shandschuh.licensechanger;
 
-public interface HeaderCommentDialect {
+public interface LanguageComment {
 	public String getCommentInitiator();
 	
 	public String getCommentMarker();
 	
 	public String getCommentClosing();
-	
-	public String getIgnoreCommentInitiator();
 }
